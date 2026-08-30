@@ -1,0 +1,43 @@
+name: Instagram Promotion Reminder
+
+on:
+  schedule:
+    # Runs approximately every 35 minutes.
+    # GitHub Actions scheduled jobs can be delayed.
+    - cron: "*/35 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  promotion-cycle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run promotion assistant
+        run: python promotion_assistant.py
+
+      - name: Show task details
+        run: |
+          echo "Promotion cycle prepared."
+          echo "Instagram URL is configured in config.json."
+          echo "No automatic third-party submission is performed."
+
+      - name: Commit activity log
+        run: |
+          if [ -f activity.log ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add activity.log
+            git diff --cached --quiet || git commit -m "chore: record promotion cycle"
+            git push || true
+          fi
